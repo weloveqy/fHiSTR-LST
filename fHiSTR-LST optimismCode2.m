@@ -1,31 +1,11 @@
-%%  classification type, one by one, cycle
-clear
-clc
-
-try
-    % 尝试启动并行池（32 workers）
-    parpool(32);
-    poolobj = gcp;
-    disp(['成功启动并行池，Worker数量：', num2str(poolobj.NumWorkers)]);
-    
-catch ME
-    % 捕获并行池启动失败错误
-    disp('! 并行池启动失败 !');
-
-    % 终止程序执行（两种方式可选）
-    error('程序终止：并行计算环境初始化失败');  % 方式1：抛出错误
-end
-
-% 只有并行池成功启动才会执行后续代码
-disp('继续执行主程序...');
 
 
 %% read reflectance in 30m scale  landsat 8/9  band 2 3 4 5 10
-Landsat_Band_input=readgeoraster('/scr/u/qqyy/frankfurt/Landsat89_Bands_2_3_4_5_10_2019-07-24.tif'); 
+Landsat_Band_input=readgeoraster('Landsat89_Bands_2_3_4_5_10_2019-07-24.tif'); 
 Landsat_Band_input=Landsat_Band_input(1:end-1,:,:);
 
 %% read reflectance in 10m scale  sentinel-2  band 2 3 4 8
-Sentinel_Band_Refl=readgeoraster('/scr/u/qqyy/frankfurt/Sentinel2_Bands_2_3_4_8_2019-07-24.tif'); 
+Sentinel_Band_Refl=readgeoraster('Sentinel2_Bands_2_3_4_8_2019-07-24.tif'); 
 Sentinel_Band_Refl=Sentinel_Band_Refl(1:end-2,:,:);
 
 %% classification type, 3-7 test
@@ -33,7 +13,6 @@ class_type=5;
 input_date1=Sentinel_Band_Refl;
 [m, n, d] = size(input_date1); image_reshaped = reshape(input_date1, m*n, d); image_reshaped=double(image_reshaped );
 [clusterIdx, clusterCenters] = kmeans(image_reshaped, class_type, 'MaxIter', 1000); classified_image = reshape(clusterIdx, m, n); 
-% imagesc(classified_image); 
 
 %% produce 30m-scale pure pixels in S2 resolution (3*10m X 3*10m)
 Landcover_classif_10m = classified_image; [rows, cols] = size(Landcover_classif_10m); Landcover_classif_10m_new = zeros(rows, cols); 
@@ -144,7 +123,6 @@ for mm = 1:class_type
     end
 end
 
-
 Landsat_Like_Temp_10m_FINAL=sum(Landsat_Like_Temp_10m_trans(i_range, j_range,:),3);
-filename_1=['/scr/u/qqyy/frankfurt/Landsat_Like_Temp_10m_LC' num2str(class_type) '_W' num2str(window_size) '.mat'];
+filename_1=['Landsat_Like_Temp_10m_LC' num2str(class_type) '_W' num2str(window_size) '.mat'];
 save(filename_1, 'Landsat_Like_Temp_10m_FINAL'); 
